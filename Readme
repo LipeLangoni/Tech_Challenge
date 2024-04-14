@@ -1,0 +1,13 @@
+# Rodar o Projeto
+
+Basta instalar a extensão do docker-compose no vscode, 
+clicar com o botão direito no arquivo docker-compose.yaml e em 
+seguida clicar "compose up". Caso não esteja utilizando o vs code,
+execute o seguinte comando:
+
+```bash
+docker compose -f "docker-compose.yaml" up -d --build 
+```
+# Testar 
+
+Após o container subir a api, basta realizar uma requisição nos diferentes endpoints que a api oferece. O notebook "testes.ipynb" contém todos os testes para serem executados apenas rodando as células.

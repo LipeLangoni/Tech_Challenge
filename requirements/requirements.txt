@@ -1,0 +1,5 @@
+requests == 2.31.0 
+pandas == 2.2.2
+fastapi == 0.110.1 
+beautifulsoup4 == 4.12.3 
+uvicorn == 0.29.0
