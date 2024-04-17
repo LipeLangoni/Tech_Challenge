@@ -45,7 +45,7 @@ http://localhost:8000/docs
 - [x] Endpoint GET /importacao
 - [x] Endpoint GET /exportacao
 - [ ] Acrescentar Payloads de Request e Response na Documentação do Swagger
-- [ ] Continuous Deploy
+- [x] Continuous Deploy
 - [ ] URL pública para API (AWS Lambda)
 - [ ] Implementar Método de Autenticação (JWT)
 
