@@ -10,10 +10,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install Dependencies
-        run: pip install -r requirements.txt
+        run: make setup
 
       - name: Zip
-        run: (cd Tech_Chalange && zip -r ../lambda-api.zip .)
+        run: (zip -r ../lambda-api.zip .)
 
       - name: Deploying lambda
         uses: appleboy/lambda-action@master
