@@ -11,6 +11,11 @@ Repositório com objetivo de atender aos requisitos propostos no projeto integra
 - Docker
 - Docker Compose
 
+## Deploy
+A cada alteração realizada na branch `Master` a pipeline de deploy será acionada, enviando as alterações para o serviço Lambda Serveless, conforme diagrama:
+
+![github-deploy-flow.svg](image%2Fgithub-deploy-flow.svg)
+
 ## Make commands
 Utilize os comandos abaixo para executar as ações desejadas:
 
