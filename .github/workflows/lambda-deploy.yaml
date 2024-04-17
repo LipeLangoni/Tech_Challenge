@@ -1,0 +1,25 @@
+name: Lambda API Deploy
+on:
+  push:
+    branches: [ Master, master, main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Zip
+        run: (cd Tech_Chalange && zip -r ../lambda-api.zip .)
+
+      - name: Deploying lambda
+        uses: appleboy/lambda-action@master
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          function_name: lambda-tech-challenge-api
+          zip_file: lambda-api.zip
