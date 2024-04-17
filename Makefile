@@ -1,6 +1,6 @@
 init:
 	docker-compose up -d --build
 setup:
-	pip install -r requirements.txt
+	docker-compose exec web pip install -r ../requirements/requirements.txt
 clean: 
 	rm -rf __pycache__
