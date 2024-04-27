@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from scrapping import DirectScrapper
+from mangum import Mangum
 
 scrap = DirectScrapper()
 
@@ -25,3 +26,4 @@ async def get_importacao():
 async def get_exportacao():
     return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv")
 
+handler = Mangum(app)
