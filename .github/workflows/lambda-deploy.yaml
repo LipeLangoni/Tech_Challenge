@@ -1,26 +1,45 @@
-name: Lambda API Deploy
+name: ECR Image build, push and lambda deploy
 on:
   push:
     branches: [ Master, master, main ]
 jobs:
-  deploy:
+  ecr_image_push:
+    env:
+      AWS_LAMBDA_FUNC_NAME: lambda-tech-challenge-fast-api
     runs-on: ubuntu-latest
     environment: production
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: pip install -r requirements/requirements.txt
-
-      - name: Zip
-        run: (zip -r lambda-api.zip .)
-
-      - name: Deploying lambda
-        uses: appleboy/lambda-action@master
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ${{ secrets.AWS_REGION }}
-          function_name: lambda-tech-challenge-api
-          zip_file: ./lambda-api.zip
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build image and push it to Amazon ECR
+        id: build-deploy-image
+        uses: whoan/docker-build-with-cache-action@v5
+        with:
+          username: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          password: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          registry: ${{ steps.login-ecr.outputs.registry }}
+          image_name: ${{ vars.AWS_ECR_REPOSITORY_NAME }}
+          image_tag: ${{ github.sha }}
+          dockerfile: production.Dockerfile
+
+      - name: Deploy image to Lambda
+        run: |
+          aws lambda update-function-code \
+          --function-name ${{ env.AWS_LAMBDA_FUNC_NAME }} \
+          --image-uri "${{ secrets.AWS_ECR_IMAGE_URI }}:${{ github.sha }}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}

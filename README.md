@@ -51,7 +51,7 @@ http://localhost:8000/docs
 - [x] Continuous Deploy
 - [ ] Acrescentar Payloads de Request e Response na Documentação do Swagger
 - [ ] Endpoint GET /processamento ***(Necessário corrigir "parseamento" do payload de response)***
-- [ ] URL pública para API (AWS Lambda)
+- [x] URL pública para API (AWS Lambda)
 - [ ] Implementar Método de Autenticação (JWT)
 - [ ] Testes de integração
 
