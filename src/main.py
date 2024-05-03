@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from mangum import Mangum
 
 scrap = DirectScrapper()
-app = FastAPI()
+app = FastAPI(openapi_prefix='/default/')
 
 
 @app.get("/")
