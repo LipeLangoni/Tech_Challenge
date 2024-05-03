@@ -16,27 +16,27 @@ async def welcome():
 
 @app.get("/producao")
 async def get_producao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv")
+    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv","utf-8",";")
 
 
 @app.get("/processamento")
 async def get_processamento():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv")
+    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv","utf-8","\t")
 
 
 @app.get("/comercializacao")
 async def get_comercializacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv")
+    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv","utf-8",";")
 
 
 @app.get("/importacao")
 async def get_importacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv")
+    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv","utf-8",";")
 
 
 @app.get("/exportacao")
 async def get_exportacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv")
+    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv","utf-8",";")
 
 
 handler = Mangum(app)
