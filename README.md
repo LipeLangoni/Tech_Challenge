@@ -39,7 +39,7 @@ rm -rf __pycache__
 ```
 ## Autenticação
 
-EndPoint Login espera Key 'password' e value 'SenhaFixada' para gerar token de autenticação
+Para obter o token de autenticação , utilize o endpoint /login com o query param 'password', contendo o valor: 'SenhaFixada'
 
 Demais EndPoints esperam Key 'Authorization' e Value 'Bearer tokenGerado'
 ## Documentação
