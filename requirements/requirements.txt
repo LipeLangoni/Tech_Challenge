@@ -1,6 +1,7 @@
-requests == 2.31.0 
+requests == 2.31.0
 pandas == 2.2.2
-fastapi == 0.110.1 
-beautifulsoup4 == 4.12.3 
+fastapi == 0.110.1
+beautifulsoup4 == 4.12.3
 uvicorn == 0.29.0
 mangum==0.17.0
+PyJWT==2.8.0
