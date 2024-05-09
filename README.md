@@ -41,7 +41,7 @@ rm -rf __pycache__
 
 Para obter o token de autenticação , utilize o endpoint /login com o query param 'password', contendo o valor: 'SenhaFixada'
 
-Demais EndPoints esperam Key 'Authorization' e Value 'Bearer tokenGerado'
+Demais EndPoints exigem uso de autenticação via Bearer Token. Utilize o token obtido no endpoint /login para consumir a API
 ## Documentação
 Com o projeto rodando localmente, basta acessar o link para consultar a documentação do projeto:
 
