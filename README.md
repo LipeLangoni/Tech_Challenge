@@ -31,12 +31,17 @@ docker-compose up -d
 docker-compose exec web pip install -r ../requirements/requirements.txt
 ```
 
+
 **Limpar cache**
 
 ```
 rm -rf __pycache__
 ```
+## Autenticação
 
+EndPoint Login espera Key 'password' e value 'SenhaFixada' para gerar token de autenticação
+
+Demais EndPoints esperam Key 'Authorization' e Value 'Bearer tokenGerado'
 ## Documentação
 Com o projeto rodando localmente, basta acessar o link para consultar a documentação do projeto:
 
@@ -52,7 +57,7 @@ http://localhost:8000/docs
 - [ ] Acrescentar Payloads de Request e Response na Documentação do Swagger
 - [x] Endpoint GET /processamento ***(Necessário corrigir "parseamento" do payload de response)***
 - [x] URL pública para API (AWS Lambda)
-- [ ] Implementar Método de Autenticação (JWT)
+- [x] Implementar Método de Autenticação (JWT)
 - [ ] Testes de integração
 
 # Testes
