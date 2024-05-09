@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from jwt.exceptions import PyJWTError
-from datetime import  datetime, timedelta
-from scrapping.scrapping import DirectScrapper
+from datetime import datetime, timedelta
+from src.scrapping.scrapping import DirectScrapper
 from fastapi.responses import JSONResponse
 from mangum import Mangum
 
