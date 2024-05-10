@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY . /app
 
+ENV STAGE=""
+
 RUN pip install -r requirements/requirements.txt --ignore-installed
 
 WORKDIR /app

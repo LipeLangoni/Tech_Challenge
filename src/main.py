@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
@@ -8,7 +9,7 @@ from fastapi.responses import JSONResponse
 from mangum import Mangum
 
 scrap = DirectScrapper()
-app = FastAPI(openapi_prefix='/default/')
+app = FastAPI(openapi_prefix=f'/{os.getenv("STAGE")}')
 
 
 # Chave secreta para assinar o JWT
