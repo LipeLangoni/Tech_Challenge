@@ -7,9 +7,33 @@ from datetime import datetime, timedelta
 from src.scrapping.scrapping import DirectScrapper
 from fastapi.responses import JSONResponse
 from mangum import Mangum
+from pydantic import BaseModel
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.openapi.utils import get_openapi
 
 scrap = DirectScrapper()
-app = FastAPI(openapi_prefix=f'/{os.getenv("STAGE")}')
+# app = FastAPI(openapi_prefix=f'/{os.getenv("STAGE")}')
+app = FastAPI()
+
+
+class ProducaoResponse(BaseModel):
+    producao: list
+
+class ProcessamentoResponse(BaseModel):
+    processamento: list
+
+class ComercializacaoResponse(BaseModel):
+    comercializacao: list
+
+class ImportacaoResponse(BaseModel):
+    importacao: list
+
+class ExportacaoResponse(BaseModel):
+    exportacao: list
+
+
 
 
 # Chave secreta para assinar o JWT
@@ -54,36 +78,45 @@ async def authenticate(credentials: HTTPAuthorizationCredentials = Depends(secur
     return True
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def welcome():
-    return JSONResponse({
-        'message': 'Welcome to Tech Challenge | Group #58 API! Check out /docs to see our resources'
-    })
+     return get_swagger_ui_html(openapi_url="openapi.json", title="Welcome to My API")
+
+# @app.on_event("startup")
+# async def generate_openapi_json():
+#     with open("openapi.json", "w") as file:
+#         json.dump(get_openapi(title="Your API's Title", version="1.0.0", routes=app.routes), file)
 
 
-@app.get("/producao", dependencies=[Depends(authenticate)])
+@app.get("/producao", dependencies=[Depends(authenticate)],response_model=ProducaoResponse)
 async def get_producao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv","utf-8",";")
+    producao_data = scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv", "utf-8", ";")
+    return JSONResponse(content=jsonable_encoder({"producao": producao_data}))
 
 
-@app.get("/processamento", dependencies=[Depends(authenticate)])
+@app.get("/processamento", dependencies=[Depends(authenticate)],response_model=ProcessamentoResponse)
 async def get_processamento():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv","utf-8","\t")
+    return {"processamento":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv","utf-8","\t")}
 
 
-@app.get("/comercializacao", dependencies=[Depends(authenticate)])
+@app.get("/comercializacao", dependencies=[Depends(authenticate)],response_model=ComercializacaoResponse)
 async def get_comercializacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv","utf-8",";")
+    return {"comercializacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv","utf-8",";")}
 
 
-@app.get("/importacao", dependencies=[Depends(authenticate)])
+@app.get("/importacao", dependencies=[Depends(authenticate)],response_model=ImportacaoResponse)
 async def get_importacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv","utf-8",";")
+    return {"importacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv","utf-8",";")}
 
 
-@app.get("/exportacao", dependencies=[Depends(authenticate)])
+@app.get("/exportacao", dependencies=[Depends(authenticate)],response_model=ExportacaoResponse)
 async def get_exportacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv","utf-8",";")
+    return {"exportacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv","utf-8",";")}
+
+@app.get("/docs", include_in_schema=False, response_class=HTMLResponse)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(openapi_url="openapi.json", title="Custom Swagger UI")
+
 
 
 handler = Mangum(app)
