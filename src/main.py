@@ -13,8 +13,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.encoders import jsonable_encoder
 
 scrap = DirectScrapper()
-# app = FastAPI(openapi_prefix=f'/{os.getenv("STAGE")}')
-app = FastAPI()
+app = FastAPI(openapi_prefix=f'{os.getenv("STAGE")}')
+#app = FastAPI()
 
 
 class ProducaoResponse(BaseModel):
