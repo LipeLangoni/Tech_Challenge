@@ -1,15 +1,38 @@
 import os
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 import jwt
 from jwt.exceptions import PyJWTError
 from datetime import datetime, timedelta
 from src.scrapping.scrapping import DirectScrapper
 from fastapi.responses import JSONResponse
 from mangum import Mangum
+from pydantic import BaseModel
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse
+from fastapi.encoders import jsonable_encoder
 
 scrap = DirectScrapper()
-app = FastAPI(openapi_prefix=f'/{os.getenv("STAGE")}')
+# app = FastAPI(openapi_prefix=f'/{os.getenv("STAGE")}')
+app = FastAPI()
+
+
+class ProducaoResponse(BaseModel):
+    producao: list
+
+class ProcessamentoResponse(BaseModel):
+    processamento: list
+
+class ComercializacaoResponse(BaseModel):
+    comercializacao: list
+
+class ImportacaoResponse(BaseModel):
+    importacao: list
+
+class ExportacaoResponse(BaseModel):
+    exportacao: list
+
+
 
 
 # Chave secreta para assinar o JWT
@@ -44,46 +67,66 @@ async def login(password: str):
 
 
 # Função de autenticação
-async def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def authenticate(token:str):
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload["sub"] != "token_de_acesso":
-            raise HTTPException(status_code=403, detail="Token inválido")
+            return False    
     except PyJWTError:
-        raise HTTPException(status_code=403, detail="Token inválido")
+        return False
     return True
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def welcome():
-    return JSONResponse({
-        'message': 'Welcome to Tech Challenge | Group #58 API! Check out /docs to see our resources'
-    })
+     return get_swagger_ui_html(openapi_url="openapi.json", title="Welcome to My API")
 
 
-@app.get("/producao", dependencies=[Depends(authenticate)])
-async def get_producao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv","utf-8",";")
+@app.post("/producao", response_model=ProducaoResponse)
+async def get_producao(token:str):
+
+    if await authenticate(token):
+        producao_data = scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv", "utf-8", ";")
+        return JSONResponse(content=jsonable_encoder({"producao": producao_data}))
+    else:
+        raise HTTPException(status_code=403, detail="Token inválido")
 
 
-@app.get("/processamento", dependencies=[Depends(authenticate)])
-async def get_processamento():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv","utf-8","\t")
+@app.post("/processamento", response_model=ProcessamentoResponse)
+async def get_processamento(token:str):
+    if await authenticate(token):
+        return JSONResponse(content=jsonable_encoder({"processamento":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv","utf-8","\t")}))
+    else:
+        raise HTTPException(status_code=403, detail="Token inválido")
 
 
-@app.get("/comercializacao", dependencies=[Depends(authenticate)])
-async def get_comercializacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv","utf-8",";")
+@app.post("/comercializacao", response_model=ComercializacaoResponse)
+async def get_comercializacao(token:str):
+    if await authenticate(token):
+        return JSONResponse(content=jsonable_encoder({"comercializacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv","utf-8",";")}))
+    else:
+        raise HTTPException(status_code=403, detail="Token inválido")
 
 
-@app.get("/importacao", dependencies=[Depends(authenticate)])
-async def get_importacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv","utf-8",";")
+@app.post("/importacao", response_model=ImportacaoResponse)
+async def get_importacao(token:str):
+    if await authenticate(token):
+        return JSONResponse(content=jsonable_encoder({"importacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv","utf-8",";")}))
+    else:
+        raise HTTPException(status_code=403, detail="Token inválido")
 
 
-@app.get("/exportacao", dependencies=[Depends(authenticate)])
-async def get_exportacao():
-    return scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv","utf-8",";")
+@app.post("/exportacao", response_model=ExportacaoResponse)
+async def get_exportacao(token:str):
+    if await authenticate(token):
+        return JSONResponse(content=jsonable_encoder({"exportacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv","utf-8",";")}))
+    else:
+        raise HTTPException(status_code=403, detail="Token inválido")
+
+@app.get("/docs", include_in_schema=False, response_class=HTMLResponse)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(openapi_url="openapi.json", title="Custom Swagger UI")
+
 
 
 handler = Mangum(app)
