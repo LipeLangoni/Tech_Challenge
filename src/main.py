@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer
 import jwt
 from jwt.exceptions import PyJWTError
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timedelta
 from src.scrapping.scrapping import DirectScrapper
 from fastapi.responses import JSONResponse
@@ -13,8 +14,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.encoders import jsonable_encoder
 
 scrap = DirectScrapper()
-# app = FastAPI(openapi_prefix=f'/{os.getenv("STAGE")}')
-app = FastAPI()
+app = FastAPI(openapi_prefix=f'{os.getenv("STAGE")}')
 
 
 class ProducaoResponse(BaseModel):
@@ -67,13 +67,13 @@ async def login(password: str):
 
 
 # Função de autenticação
-async def authenticate(token:str):
+async def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         if payload["sub"] != "token_de_acesso":
-            return False    
+            raise HTTPException(status_code=403, detail="Token inválido")
     except PyJWTError:
-        return False
+        raise HTTPException(status_code=403, detail="Token inválido")
     return True
 
 
@@ -82,46 +82,35 @@ async def welcome():
      return get_swagger_ui_html(openapi_url="openapi.json", title="Welcome to My API")
 
 
-@app.post("/producao", response_model=ProducaoResponse)
-async def get_producao(token:str):
-
-    if await authenticate(token):
-        producao_data = scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv", "utf-8", ";")
-        return JSONResponse(content=jsonable_encoder({"producao": producao_data}))
-    else:
-        raise HTTPException(status_code=403, detail="Token inválido")
+@app.get("/producao", dependencies=[Depends(authenticate)],response_model=ProducaoResponse)
+async def get_producao():
+    producao_data = scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Producao.csv", "utf-8", ";")
+    return JSONResponse(content=jsonable_encoder({"producao": producao_data}))
+    
 
 
-@app.post("/processamento", response_model=ProcessamentoResponse)
-async def get_processamento(token:str):
-    if await authenticate(token):
-        return JSONResponse(content=jsonable_encoder({"processamento":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv","utf-8","\t")}))
-    else:
-        raise HTTPException(status_code=403, detail="Token inválido")
+@app.get("/processamento", dependencies=[Depends(authenticate)],response_model=ProcessamentoResponse)
+async def get_processamento():
+    return JSONResponse(content=jsonable_encoder({"processamento":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ProcessaViniferas.csv","utf-8","\t")}))
+    
 
 
-@app.post("/comercializacao", response_model=ComercializacaoResponse)
-async def get_comercializacao(token:str):
-    if await authenticate(token):
-        return JSONResponse(content=jsonable_encoder({"comercializacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv","utf-8",";")}))
-    else:
-        raise HTTPException(status_code=403, detail="Token inválido")
+@app.get("/comercializacao", dependencies=[Depends(authenticate)],response_model=ComercializacaoResponse)
+async def get_comercializacao():
+    return JSONResponse(content=jsonable_encoder({"comercializacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv","utf-8",";")}))
 
 
-@app.post("/importacao", response_model=ImportacaoResponse)
-async def get_importacao(token:str):
-    if await authenticate(token):
-        return JSONResponse(content=jsonable_encoder({"importacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv","utf-8",";")}))
-    else:
-        raise HTTPException(status_code=403, detail="Token inválido")
+
+@app.get("/importacao", dependencies=[Depends(authenticate)],response_model=ImportacaoResponse)
+async def get_importacao():
+    return JSONResponse(content=jsonable_encoder({"importacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ImpVinhos.csv","utf-8",";")}))
 
 
-@app.post("/exportacao", response_model=ExportacaoResponse)
-async def get_exportacao(token:str):
-    if await authenticate(token):
-        return JSONResponse(content=jsonable_encoder({"exportacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv","utf-8",";")}))
-    else:
-        raise HTTPException(status_code=403, detail="Token inválido")
+
+@app.get("/exportacao", dependencies=[Depends(authenticate)],response_model=ExportacaoResponse)
+async def get_exportacao():
+    return JSONResponse(content=jsonable_encoder({"exportacao":scrap.get_data("http://vitibrasil.cnpuv.embrapa.br/download/ExpVinho.csv","utf-8",";")}))
+
 
 @app.get("/docs", include_in_schema=False, response_class=HTMLResponse)
 async def custom_swagger_ui_html():
