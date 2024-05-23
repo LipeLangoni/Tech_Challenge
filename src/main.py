@@ -1,39 +1,24 @@
 import os
+from datetime import datetime, timedelta
+
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import HTTPBearer
+from fastapi.encoders import jsonable_encoder
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from mangum import Mangum
 import jwt
 from jwt.exceptions import PyJWTError
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from datetime import datetime, timedelta
+
 from src.scrapping.scrapping import DirectScrapper
-from fastapi.responses import JSONResponse
-from mangum import Mangum
-from pydantic import BaseModel
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse
-from fastapi.encoders import jsonable_encoder
+from src.responses.producao_response import ProducaoResponse
+from src.responses.processamento_response import ProcessamentoResponse
+from src.responses.exportacao_response import ExportacaoResponse
+from src.responses.importacao_response import ImportacaoResponse
+from src.responses.comercializacao_response import ComercializacaoResponse
 
 scrap = DirectScrapper()
 app = FastAPI(openapi_prefix=f'{os.getenv("STAGE")}')
-
-
-class ProducaoResponse(BaseModel):
-    producao: list
-
-class ProcessamentoResponse(BaseModel):
-    processamento: list
-
-class ComercializacaoResponse(BaseModel):
-    comercializacao: list
-
-class ImportacaoResponse(BaseModel):
-    importacao: list
-
-class ExportacaoResponse(BaseModel):
-    exportacao: list
-
-
-
 
 # Chave secreta para assinar o JWT
 SECRET_KEY = "testando"
@@ -79,7 +64,7 @@ async def authenticate(credentials: HTTPAuthorizationCredentials = Depends(secur
 
 @app.get("/", response_class=HTMLResponse)
 async def welcome():
-     return get_swagger_ui_html(openapi_url="openapi.json", title="Welcome to My API")
+     return get_swagger_ui_html(openapi_url="src/openapi.json", title="Welcome to My API")
 
 
 @app.get("/producao", dependencies=[Depends(authenticate)],response_model=ProducaoResponse)
