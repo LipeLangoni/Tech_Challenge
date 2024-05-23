@@ -63,7 +63,7 @@ async def authenticate(credentials: HTTPAuthorizationCredentials = Depends(secur
 
 @app.get("/", response_class=HTMLResponse)
 async def welcome():
-     return get_swagger_ui_html(openapi_url="openapi.json", title="Welcome to My API")
+     return get_swagger_ui_html(openapi_url="src/openapi.json", title="Welcome to My API")
 
 
 @app.get("/producao", dependencies=[Depends(authenticate)],response_model=ProducaoResponse)
