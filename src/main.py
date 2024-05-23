@@ -6,8 +6,9 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jwt import PyJWTError
 from mangum import Mangum
+import jwt
+from jwt.exceptions import PyJWTError
 
 from src.scrapping.scrapping import DirectScrapper
 from src.responses.producao_response import ProducaoResponse
