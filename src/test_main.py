@@ -1,54 +1,73 @@
+from unittest.mock import AsyncMock
+
 import pytest
+from fastapi import status
+from httpx import ASGITransport
 from httpx import AsyncClient
-from main import app
+
+from src.main import app
 from src.scrapping.scrapping import DirectScrapper
-from unittest.mock import Mock
+
 
 @pytest.fixture
 def mock_scrapper(mocker):
     mocker.patch.object(DirectScrapper, 'get_data', return_value=[{'column1': 'value1', 'column2': 'value2'}])
 
-@pytest.mark.asyncio
-async def test_welcome():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/")
-    assert response.status_code == 200
-    assert response.json() == {
-        'message': 'Welcome to Tech Challenge | Group #58 API! Check out /docs to see our resources'
-    }
 
-@pytest.mark.asyncio
-async def test_get_producao(mock_scrapper):
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/producao")
-    assert response.status_code == 200
-    assert response.json() == [{'column1': 'value1', 'column2': 'value2'}]
+@pytest.fixture
+def mock_jwt_decode(mocker):
+    return mocker.patch('jwt.decode', return_value={'sub': 'token_de_acesso'})
 
-# Adicione testes para outras rotas da mesma forma
-@pytest.mark.asyncio
-async def test_get_processamento(mock_scrapper):
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/processamento")
-    assert response.status_code == 200
-    assert response.json() == [{'column1': 'value1', 'column2': 'value2'}]
 
-@pytest.mark.asyncio
-async def test_get_comercializacao(mock_scrapper):
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/comercializacao")
-    assert response.status_code == 200
-    assert response.json() == [{'column1': 'value1', 'column2': 'value2'}]
+def data_provider_available_resources():
+    data = [
+        {'resource': 'producao'},
+        {'resource': 'processamento'},
+        {'resource': 'comercializacao'},
+        {'resource': 'importacao'},
+        {'resource': 'exportacao'}
+    ]
 
-@pytest.mark.asyncio
-async def test_get_importacao(mock_scrapper):
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/importacao")
-    assert response.status_code == 200
-    assert response.json() == [{'column1': 'value1', 'column2': 'value2'}]
+    for row in data:
+        yield row
 
-@pytest.mark.asyncio
-async def test_get_exportacao(mock_scrapper):
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/exportacao")
-    assert response.status_code == 200
-    assert response.json() == [{'column1': 'value1', 'column2': 'value2'}]
+
+class TestMain:
+    BASE_URL = 'http://test.com'
+    TOKEN = 'test_token'
+
+    @pytest.fixture(params=data_provider_available_resources())
+    def data_provider(self, request):
+        return request.param
+
+    @pytest.mark.asyncio
+    async def test_welcome(self):
+        async with AsyncClient(transport=ASGITransport(app=app)) as ac:
+            response = await ac.get(f'{self.BASE_URL}/')
+        assert response.status_code == status.HTTP_200_OK
+
+    @pytest.mark.asyncio
+    async def test_get_resources_without_auth_token(self, mock_scrapper, data_provider):
+        async with AsyncClient(transport=ASGITransport(app=app)) as ac:
+            path = data_provider['resource']
+            response = await ac.get(f'{self.BASE_URL}/{path}')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {'detail': 'Not authenticated'}
+
+    @pytest.mark.asyncio
+    async def test_get_resources(self, mock_jwt_decode, mock_scrapper, mocker, data_provider):
+        mocker.patch('src.main.authenticate', AsyncMock(return_value=True))
+
+        async with AsyncClient(transport=ASGITransport(app=app)) as ac:
+            resource = data_provider['resource']
+            headers = {'Authorization': f'Bearer {self.TOKEN}'}
+
+            response = await ac.get(f'{self.BASE_URL}/{resource}', headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {f'{resource}': [{'column1': 'value1', 'column2': 'value2'}]}
+
+
+if __name__ == '__main__':
+    pytest.main()  # pragma: no cover

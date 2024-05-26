@@ -6,6 +6,10 @@ Repositório com objetivo de atender aos requisitos propostos no projeto integra
 - FastAPI
 - Swagger
 - Docker
+- Github Actions
+- AWS ECR
+- AWS Lambda
+- AWS ApiGateway
 
 ## Requisitos
 - Docker
@@ -21,31 +25,42 @@ Utilize os comandos abaixo para executar as ações desejadas:
 
 **Iniciar aplicação localmente**
 
-```
+```bash
 docker-compose up -d
 ```
 
 **Instalar depêndencias do projeto**
 
-```
-docker-compose exec web pip install -r ../requirements/requirements.txt
+```bash
+docker-compose exec web pip install -r ./requirements/requirements.txt
 ```
 
 
 **Limpar cache**
 
-```
+```bash
 rm -rf __pycache__
 ```
 ## Autenticação
+Para obter o token de autenticação, utilize o endpoint `/login` com o query param `password`, contendo o valor: `SenhaFixa`
 
-Para obter o token de autenticação , utilize o endpoint /login com o query param 'password', contendo o valor: 'SenhaFixada'
+Demais EndPoints exigem uso de autenticação via HTTP Bearer Token. 
+Utilize o token obtido no endpoint `/login` para consumir a API
 
-Demais EndPoints exigem uso de autenticação via Bearer Token. Utilize o token obtido no endpoint /login para consumir a API
 ## Documentação
 Com o projeto rodando localmente, basta acessar o link para consultar a documentação do projeto:
-
 http://localhost:8000/docs
+
+# Testes
+Para executar os testes de integração, execute o seguinte comando:
+```bash
+ docker-compose exec web pytest
+```
+
+O resultado esperado é semelhante ao apresentado abaixo:
+
+![img.png](img.png)
+
 ****
 
 ## Agenda evolutiva do projeto:
@@ -54,11 +69,8 @@ http://localhost:8000/docs
 - [x] Endpoint GET /importacao
 - [x] Endpoint GET /exportacao
 - [x] Continuous Deploy
-- [ ] Acrescentar Payloads de Request e Response na Documentação do Swagger
+- [x] Acrescentar Payloads de Response na Documentação do Swagger
 - [x] Endpoint GET /processamento ***(Necessário corrigir "parseamento" do payload de response)***
-- [x] URL pública para API (AWS Lambda)
+- [x] URL pública para API (AWS Lambda + ApiGateway)
 - [x] Implementar Método de Autenticação (JWT)
-- [ ] Testes de integração
-
-# Testes
-Após o container subir a api, basta realizar uma requisição nos diferentes endpoints que a api oferece. O notebook "testes.ipynb" contém todos os testes para serem executados apenas rodando as células.
+- [x] Testes de integração

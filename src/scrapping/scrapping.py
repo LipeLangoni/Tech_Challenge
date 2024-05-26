@@ -1,13 +1,15 @@
-import requests
-from bs4 import BeautifulSoup
+import logging
 from io import StringIO
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import requests
 
 
 class Scrapper:
     def __init__(self):
         pass
+
 
 class DirectScrapper(Scrapper):
     def __init__(self):
@@ -23,5 +25,5 @@ class DirectScrapper(Scrapper):
             df = df.fillna('NaN')
 
             return df.to_dict(orient='records')
-        else: 
-            print("Fail to download data")
+        else:
+            logging.error('Fail to download data')
